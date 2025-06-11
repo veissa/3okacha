@@ -1,16 +1,16 @@
-FROM python:3.10-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py .
-COPY static ./static
-COPY flag.txt .
+COPY . .
 
-EXPOSE 5000
+ENV PORT=8080
+ENV FLASK_APP=app.py
 
-# Use Gunicorn with multiple workers for concurrency
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
+EXPOSE 8080
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
 
