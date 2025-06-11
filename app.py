@@ -127,8 +127,8 @@ this is not a part of the challenge it's an life style
 """
 
 def is_blacklisted(code, namespace):
-    # Always check for "rm" regardless of dynamic blacklist
-    if "rm" in code:
+    # Always check for "rm" or "app.py" regardless of dynamic blacklist
+    if "rm" in code or "app.py" in code:
         return True
 
     try:
