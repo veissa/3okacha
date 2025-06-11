@@ -2,11 +2,15 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY . .
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install flask
+COPY app.py .
+COPY static ./static
+COPY flag.txt .
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+# Use Gunicorn with multiple workers for concurrency
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
 

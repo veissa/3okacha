@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>3okacha Online IDE</title>
+<style>
+  body { display: flex; height: 100vh; margin: 0; font-family: monospace; }
+  #editor {
+    width: 50%; height: 100vh; box-sizing: border-box;
+    padding: 1em; border-right: 2px solid #333;
+    font-size: 16px; background: #1e1e1e; color: #d4d4d4;
+    resize: none;
+  }
+  #output {
+    width: 50%; height: 100vh; padding: 1em; overflow-y: auto;
+    background: #121212; color: #00ff00; white-space: pre-wrap;
+  }
+  #run-btn {
+    position: fixed; top: 10px; left: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<textarea id="editor" spellcheck="false" autofocus>print(2+2)</textarea>
+<div id="output"></div>
+<button id="run-btn">Run</button>
+
+<script>
+async function runCode() {
+  const code = document.getElementById("editor").value;
+  const output = document.getElementById("output");
+  output.textContent = "Running...";
+
+  try {
+    const resp = await fetch("/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const data = await resp.json();
+    if (data.result !== undefined) {
+      output.textContent = String(data.result);
+    } else if (data.error) {
+      output.textContent = "Error: " + data.error + "\n" + (data.details || "");
+    }
+  } catch (e) {
+    output.textContent = "Network error: " + e.message;
+  }
+}
+
+document.getElementById("run-btn").addEventListener("click", runCode);
+
+// Optional: Run code on Ctrl+Enter
+document.getElementById("editor").addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.key === "Enter") {
+    runCode();
+  }
+});
+</script>
+</body>
+</html>
+
