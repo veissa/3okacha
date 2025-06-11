@@ -10,7 +10,6 @@ COPY . .
 COPY start.sh .
 RUN chmod +x start.sh
 
-ENV PORT=8080
 ENV FLASK_APP=app.py
 
 EXPOSE 8080
