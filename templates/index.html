@@ -12,6 +12,63 @@
             height: 100vh;
             margin: 0;
             padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .terminal-container {
+            background-color: #1a1a1a; /* Darker background for the card */
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); /* Green glow effect */
+            width: 90%; /* Max width for the terminal */
+            max-width: 800px; /* Max width to keep it centered */
+            height: 90vh;
+            max-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        .title {
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid #00ff00;
+            margin-bottom: 10px;
+        }
+        .output-area {
+            flex-grow: 1; /* Allows output to take available space */
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #000000;
+            color: #00ff00;
+            padding: 10px;
+            border: 1px solid #004400; /* Subtle border */
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .input-line-container {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            border-top: 1px solid #004400;
+        }
+        .terminal-input {
+            flex-grow: 1;
+            font-family: 'Courier New', Courier, monospace;
+            tab-size: 4;
+            background-color: #000000;
+            color: #00ff00;
+            border: none;
+            outline: none;
+            padding: 5px;
+        }
+        .prompt {
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            margin-right: 5px;
         }
         .code-editor {
             font-family: 'Courier New', Courier, monospace;
@@ -60,90 +117,71 @@
             background-color: #004400;
             color: #00ff00;
         }
-        .prompt {
-            color: #00ff00;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        .title {
-            color: #00ff00;
-            font-family: 'Courier New', Courier, monospace;
+        .footer-text {
             text-align: center;
-            padding: 10px;
-            border-bottom: 1px solid #00ff00;
+            color: #00ff00;
+            font-size: 0.8em;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container mx-auto">
+    <div class="container mx-auto terminal-container">
         <h1 class="title text-2xl font-bold">CIT 3okacha</h1>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <!-- Code Editor -->
-            <div class="panel">
-                <div class="prompt p-4"><textarea id="codeInput" class="code-editor" placeholder="Enter your Python code here..."></textarea></div>
-            </div>
+        <div id="terminalOutput" class="output-area"></div>
 
-            <!-- Output Display -->
-            <div class="panel">
-                <div id="output" class="output"></div>
-            </div>
+        <div class="input-line-container">
+            <span class="prompt">>>> </span><input type="text" id="terminalInput" class="terminal-input" autofocus>
         </div>
 
-        <button id="runButton" class="run-button font-bold py-2 px-4 rounded-lg transition duration-200">
-            Run Code
-        </button>
+        <div class="footer-text">
+            Made by @Vityok, with love
+        </div>
     </div>
 
     <script>
         // Generate a unique user ID for this session
         const userId = crypto.randomUUID();
         
-        document.getElementById('runButton').addEventListener('click', async () => {
-            const codeInput = document.getElementById('codeInput');
-            const output = document.getElementById('output');
-            const runButton = document.getElementById('runButton');
+        const terminalInput = document.getElementById('terminalInput');
+        const terminalOutput = document.getElementById('terminalOutput');
 
-            // Disable button while running
-            runButton.disabled = true;
+        terminalInput.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent default Enter key behavior (new line)
+                const command = terminalInput.value.trim();
+                
+                if (command === '') return;
 
-            // Display the user's input with '>>>' prompt
-            const inputLines = codeInput.value.split('\n');
-            let formattedInput = '';
-            for (const line of inputLines) {
-                formattedInput += '<span class="prompt">>>> </span>' + line + '\n';
-            }
-            output.innerHTML += formattedInput;
+                // Add command to output history
+                terminalOutput.innerHTML += '<span class="prompt">>>> </span>' + command + '\n';
+                terminalInput.value = ''; // Clear input field
 
-            try {
-                const response = await fetch('/execute', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        code: codeInput.value,
-                        user_id: userId
-                    })
-                });
+                try {
+                    const response = await fetch('/execute', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            code: command,
+                            user_id: userId
+                        })
+                    });
 
-                const data = await response.json();
-                output.innerHTML += data.output + '\n';
-                output.className = `output ${data.error ? 'text-red-500' : 'text-green-500'}`;
-            } catch (error) {
-                output.textContent = 'Error: Could not execute code';
-                output.className = 'output text-red-500';
-            }
-
-            // Re-enable button
-            runButton.disabled = false;
-        });
-
-        // Add keyboard shortcut (Ctrl+Enter) to run code
-        document.getElementById('codeInput').addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                document.getElementById('runButton').click();
+                    const data = await response.json();
+                    terminalOutput.innerHTML += data.output + '\n';
+                    terminalOutput.scrollTop = terminalOutput.scrollHeight; // Scroll to bottom
+                } catch (error) {
+                    terminalOutput.innerHTML += 'Error: Could not execute code\n';
+                    terminalOutput.scrollTop = terminalOutput.scrollHeight; // Scroll to bottom
+                }
             }
         });
+
+        // Focus on the input when the page loads
+        terminalInput.focus();
     </script>
 </body>
 </html> 

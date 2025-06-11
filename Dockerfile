@@ -7,10 +7,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+COPY start.sh .
+RUN chmod +x start.sh
+
 ENV PORT=8080
 ENV FLASK_APP=app.py
 
 EXPOSE 8080
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
+CMD ["./start.sh"]
 

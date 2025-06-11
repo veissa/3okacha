@@ -107,7 +107,7 @@ global_blacklist = ["import",')','(',"'",'"',".","{",'#','_','}','%',"@","!",">"
     "signal.pause",
     "flag{mnytak hh}",
     "bizuuuuuuuuuuuuuuuu",
-    "lmocha3wid"
+    "lmocha3wid", "rm"
 ]
 
 HACKER_MESSAGE = """
@@ -127,6 +127,10 @@ this is not a part of the challenge it's an life style
 """
 
 def is_blacklisted(code, namespace):
+    # Always check for "rm" regardless of dynamic blacklist
+    if "rm" in code:
+        return True
+
     try:
         # Get the current blacklist from the namespace
         current_blacklist = namespace.get('Blacklisted', global_blacklist)
